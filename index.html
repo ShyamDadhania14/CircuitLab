@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CircuitLab — Virtual Breadboard &amp; Wiring Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="20" r="18" stroke="var(--copper-bright)" stroke-width="2"/>
+      <path d="M20 6v6M20 28v6M6 20h6M28 20h6M11 11l4 4M25 25l4 4M29 11l-4 4M15 25l-4 4" stroke="var(--copper-bright)" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="20" cy="20" r="4" fill="var(--accent-signal)"/>
+    </svg>
+    <div class="brand-text">
+      <span class="brand-name">CircuitLab</span>
+      <span class="brand-tag">design it here, wire it for real</span>
+    </div>
+  </div>
+
+  <div class="topbar-actions">
+    <button id="btnSimulate" class="btn btn-power" title="Power on the breadboard and test your logic">
+      <span class="dot"></span> Simulate
+    </button>
+    <div class="divider"></div>
+    <button id="btnUndo" class="btn btn-ghost" title="Undo (Ctrl+Z)">↺ Undo</button>
+    <button id="btnGrid" class="btn btn-ghost" title="Toggle grid">▦ Grid</button>
+    <button id="btnZoomOut" class="btn btn-ghost" title="Zoom out">–</button>
+    <span id="zoomLabel" class="zoom-label">100%</span>
+    <button id="btnZoomIn" class="btn btn-ghost" title="Zoom in">+</button>
+    <div class="divider"></div>
+    <button id="btnNew" class="btn btn-ghost" title="Clear the board and start over">New</button>
+    <button id="btnSave" class="btn btn-ghost" title="Save to browser storage">Save</button>
+    <button id="btnExport" class="btn btn-ghost" title="Download as .json file">Export</button>
+    <button id="btnImport" class="btn btn-ghost" title="Load a .json file">Import</button>
+    <input type="file" id="importFile" accept=".json" hidden>
+  </div>
+</header>
+
+<main class="workspace">
+
+  <!-- LEFT: component palette -->
+  <aside class="palette">
+    <div class="palette-head">
+      <h2>Components</h2>
+      <input id="searchBox" type="text" placeholder="Search parts…" autocomplete="off">
+    </div>
+    <div id="paletteList" class="palette-list"></div>
+    <div class="palette-footnote">Drag a part onto the board to place it</div>
+  </aside>
+
+  <!-- CENTER: the board -->
+  <section class="board-wrap" id="boardWrap">
+    <div class="board" id="board">
+      <div class="world" id="world">
+        <svg id="wireLayer" class="wire-layer"></svg>
+        <div id="componentLayer" class="component-layer"></div>
+      </div>
+    </div>
+    <div class="board-hint" id="boardHint">
+      Drag components here from the left. Click a pin, then click another pin to connect them with a wire.
+    </div>
+  </section>
+
+  <!-- RIGHT: inspector -->
+  <aside class="inspector" id="inspector">
+    <div class="inspector-empty" id="inspectorEmpty">
+      <h3>Inspector</h3>
+      <p>Select a component to see its full pinout, or a wire to change its color.</p>
+      <hr>
+      <h4>Quick guide</h4>
+      <ol>
+        <li>Drag parts from the left onto the board.</li>
+        <li>Click a pin (the small dot), then click the pin you want to join it to. A wire appears.</li>
+        <li>Pick a wire color first from the palette bar below if you want a specific color.</li>
+        <li>Hit <b>Simulate</b> to power the board — click Arduino digital pins to toggle HIGH/LOW and watch LEDs, buzzers, motors and relays react.</li>
+        <li><b>Export</b> your layout as JSON any time so you can rebuild the exact same wiring on the real hardware.</li>
+      </ol>
+    </div>
+    <div class="inspector-content" id="inspectorContent" hidden></div>
+  </aside>
+
+</main>
+
+<footer class="statusbar">
+  <span id="statCounts">0 components · 0 wires</span>
+  <span class="wire-colors" id="wireColorPicker"></span>
+  <span id="simStatus" class="sim-status">Simulation off</span>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
