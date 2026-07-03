@@ -238,41 +238,52 @@ reg({
   `)
 });
 
-/* ---- Breadboard (bus-heavy prototyping board) ---- */
-(function () {
-  const w = 480, h = 170;
+/* ---- Breadboards (bus-heavy prototyping board factory) ----
+   Real breadboards have a center gap splitting top rows (a-e) from bottom
+   rows (f-j); every column of holes on one side of that gap is one
+   electrical node (shorted vertically), and each power rail runs the full
+   length of the board as one node (shorted horizontally). This factory
+   builds both, showing several real holes per column/rail all wired
+   together with busGroups so it looks and behaves like the real thing. */
+function makeBreadboard(id, name, cols, w, h, railCount) {
   const pins = [];
-  function railPins(prefix, y, color) {
-    const xs = [40,100,160,220,300,360,420];
-    xs.forEach((x,i)=> pins.push({id:prefix+i, name:prefix.includes("POS")?"Power rail +":"Power rail -", x, y}));
-    return xs.map((x,i)=>prefix+i);
+  const busGroups = [];
+
+  function railPins(prefix, y, label, count) {
+    const xs = Array.from({length:count}, (_,i)=> 34 + i*((w-68)/(count-1)));
+    const ids = xs.map((x,i)=>{ const pid=prefix+i; pins.push({id:pid,name:label,x,y}); return pid; });
+    busGroups.push(ids);
   }
-  const railTopPos = railPins("RTP", 12);
-  const railTopNeg = railPins("RTN", 26);
-  const railBotPos = railPins("RBP", h-26);
-  const railBotNeg = railPins("RBN", h-12);
-  const colTop = [], colBot = [];
-  for (let i=0;i<16;i++){
-    const x = 30 + i*28;
-    pins.push({id:"CT"+i, name:"Row a-e, col "+(i+1), x, y:56});
-    pins.push({id:"CB"+i, name:"Row f-j, col "+(i+1), x, y:h-56});
-    colTop.push("CT"+i); colBot.push("CB"+i);
+  railPins("RTP", 12, "Power rail +", railCount);
+  railPins("RTN", 26, "Power rail -", railCount);
+  railPins("RBP", h-26, "Power rail +", railCount);
+  railPins("RBN", h-12, "Power rail -", railCount);
+
+  const colGap = (w-60) / (cols-1);
+  for (let i=0;i<cols;i++){
+    const x = 30 + i*colGap;
+    const topGroup = [42,52,62].map((y,k)=>{ const pid="CT"+i+"_"+k; pins.push({id:pid,name:"Row a-e, col "+(i+1), x, y}); return pid; });
+    const botGroup = [h-62,h-52,h-42].map((y,k)=>{ const pid="CB"+i+"_"+k; pins.push({id:pid,name:"Row f-j, col "+(i+1), x, y}); return pid; });
+    busGroups.push(topGroup, botGroup);
   }
+
   reg({
-    id:"breadboard", name:"Breadboard", category:"Prototyping", w, h, pins,
-    busGroups:[railTopPos, railTopNeg, railBotPos, railBotNeg],
+    id, name, category:"Prototyping", w, h, pins, busGroups,
     art:(w,h)=> svg(w,h,`
       <rect x="0" y="0" width="${w}" height="${h}" rx="6" fill="#f2f0e8"/>
       <rect x="0" y="4" width="${w}" height="14" fill="#e2453f" opacity=".55"/>
       <rect x="0" y="18" width="${w}" height="14" fill="#2f6fb0" opacity=".55"/>
       <rect x="0" y="${h-32}" width="${w}" height="14" fill="#2f6fb0" opacity=".55"/>
       <rect x="0" y="${h-18}" width="${w}" height="14" fill="#e2453f" opacity=".55"/>
-      ${Array.from({length:16}).map((_,i)=>`<rect x="${28+i*28-1}" y="46" width="2" height="20" fill="#ccc"/>`).join("")}
-      ${Array.from({length:16}).map((_,i)=>`<rect x="${28+i*28-1}" y="${h-66}" width="2" height="20" fill="#ccc"/>`).join("")}
+      ${Array.from({length:cols}).map((_,i)=>`<rect x="${30+i*colGap-1}" y="36" width="2" height="30" fill="#ccc"/>`).join("")}
+      ${Array.from({length:cols}).map((_,i)=>`<rect x="${30+i*colGap-1}" y="${h-66}" width="2" height="30" fill="#ccc"/>`).join("")}
       <line x1="0" y1="${h/2}" x2="${w}" y2="${h/2}" stroke="#d8d5c9" stroke-width="6"/>
     `)
   });
-})();
+}
+
+makeBreadboard("breadboard", "Breadboard", 16, 480, 170, 7);
+makeBreadboard("breadboard_large", "Breadboard (Full-Size, Large)", 24, 720, 190, 10);
 
 /* ---- Battery (9V) ---- */
 reg({
@@ -702,6 +713,21 @@ makeDipIC({ id:"ic_memory", name:"Memory IC (EEPROM)", w:90, h:52, label:"24LC25
 makeDipIC({ id:"ic_opamp", name:"Operational Amplifier", w:90, h:52, label:"LM358",
   topPins:["VCC","OUT2","IN2-","IN2+"], botPins:["GND","OUT1","IN1-","IN1+"] });
 
+makeDipIC({ id:"lm358", name:"LM358 (Comparator IC)", w:90, h:52, label:"LM358",
+  topPins:["VCC","OUT2","IN2-","IN2+"], botPins:["GND","OUT1","IN1-","IN1+"] });
+
+makeDipIC({ id:"lm324", name:"LM324 (Quad Op-Amp)", w:150, h:52, label:"LM324",
+  topPins:["VCC","OUT2","IN2-","IN2+","OUT3","IN3-","IN3+"],
+  botPins:["GND","OUT1","IN1-","IN1+","OUT4","IN4-","IN4+"] });
+
+makeDipIC({ id:"uln2003", name:"ULN2003 (Relay Driver IC)", w:170, h:56, label:"ULN2003",
+  topPins:["IN1","IN2","IN3","IN4","IN5","IN6","IN7","GND"],
+  botPins:["OUT1","OUT2","OUT3","OUT4","OUT5","OUT6","OUT7","COM"] });
+
+makeDipIC({ id:"cd4017", name:"CD4017 (Decade Counter IC)", w:170, h:56, label:"CD4017",
+  topPins:["VDD","Q5","Q1","Q0","Q2","Q6","Q7","Q3"],
+  botPins:["GND","Q8","Q4","Q9","CARRY_OUT","CLOCK_INH","CLOCK","RESET"] });
+
 /* ---- Wires (dedicated folder: jumpers and probe leads) ---- */
 reg({
   id:"jumper_mm", name:"Jumper Wire (Male-Male)", category:"Wires", w:96, h:22,
@@ -1049,6 +1075,190 @@ reg({
     <text x="45" y="14" font-size="7" fill="#456" text-anchor="middle" font-family="monospace">TANK</text>
   `)
 });
+
+/* ---- PCB Board (blank perfboard for a final soldered build; every pad isolated) ---- */
+(function () {
+  const w = 300, h = 170, cols = 10, rows = 5;
+  const pins = [];
+  const marginX = 20, marginY = 22;
+  const gapX = (w - 2*marginX) / (cols-1), gapY = (h - 2*marginY) / (rows-1);
+  for (let r=0;r<rows;r++){
+    for (let c=0;c<cols;c++){
+      pins.push({id:"pad_"+r+"_"+c, name:"Pad R"+(r+1)+"C"+(c+1), x: marginX+c*gapX, y: marginY+r*gapY});
+    }
+  }
+  reg({
+    id:"pcb_board", name:"PCB Board (Perfboard)", category:"Prototyping", w, h, pins,
+    art:(w,h)=> svg(w,h,`
+      <rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="#0f5132"/>
+      <rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="none" stroke="#0a3d26" stroke-width="2"/>
+      ${Array.from({length:rows}).map((_,r)=>Array.from({length:cols}).map((__,c)=>
+        `<circle cx="${marginX+c*gapX}" cy="${marginY+r*gapY}" r="4" fill="#c98a4b"/><circle cx="${marginX+c*gapX}" cy="${marginY+r*gapY}" r="1.6" fill="#0f5132"/>`
+      ).join("")).join("")}
+    `)
+  });
+})();
+
+/* ---- Multimeter (measures voltage / continuity between its two probes) ---- */
+reg({
+  id:"multimeter", name:"Multimeter", category:"Tools", w:90, h:130,
+  pins:[ {id:"probe_pos",name:"Probe + (VΩA)",x:24,y:126},{id:"probe_neg",name:"Probe - (COM)",x:66,y:126} ],
+  dynamic:"multimeter",
+  art:(w,h)=> svg(w,h,`
+    <rect x="4" y="4" width="82" height="112" rx="8" fill="#f2b705"/>
+    <rect x="4" y="4" width="82" height="112" rx="8" fill="none" stroke="#c99404" stroke-width="2"/>
+    <rect x="14" y="14" width="62" height="26" rx="3" fill="#0a2e1f"/>
+    <text class="mm-screen-text" x="45" y="32" font-size="11" fill="#39ff88" text-anchor="middle" font-family="monospace" font-weight="700">0.00</text>
+    <circle cx="45" cy="66" r="20" fill="#333"/>
+    <circle cx="45" cy="66" r="20" fill="none" stroke="#111" stroke-width="2"/>
+    <rect x="43" y="48" width="4" height="16" fill="#eee"/>
+    <line x1="24" y1="118" x2="24" y2="126" stroke="#c0392b" stroke-width="2.4"/>
+    <line x1="66" y1="118" x2="66" y2="126" stroke="#222" stroke-width="2.4"/>
+  `)
+});
+
+/* ---- Mechanical / Practical Items (dedicated folder) ---- */
+
+reg({
+  id:"water_probe_wire", name:"Wire for Water Probes", category:"Mechanical", w:100, h:24,
+  pins:[ {id:"l1",name:"End A",x:6,y:14},{id:"l2",name:"End B",x:94,y:14} ],
+  passThrough:[["l1","l2"]],
+  art:(w,h)=> svg(w,h,`
+    <rect x="2" y="8" width="14" height="10" rx="2" fill="#1c1c1c"/>
+    <line x1="16" y1="13" x2="${w-16}" y2="13" stroke="#2f6fb0" stroke-width="4" stroke-linecap="round"/>
+    <line x1="16" y1="15" x2="${w-16}" y2="15" stroke="#111" stroke-width="1.4" stroke-dasharray="3 3"/>
+    <rect x="${w-16}" y="8" width="14" height="10" rx="2" fill="#1c1c1c"/>
+    <text x="${w/2}" y="8" font-size="6" fill="#8ab" text-anchor="middle" font-family="monospace">waterproof</text>
+  `)
+});
+
+reg({
+  id:"plastic_container", name:"Plastic Container / Tank Model", category:"Mechanical", w:100, h:70,
+  pins:[],
+  art:(w,h)=> svg(w,h,`
+    <path d="M8 14 h${w-16} l-6 50 h-${w-36} z" fill="#bcd8e0" opacity=".55"/>
+    <path d="M8 14 h${w-16} l-6 50 h-${w-36} z" fill="none" stroke="#8fb3bd" stroke-width="2"/>
+    <rect x="2" y="6" width="${w-4}" height="10" rx="2" fill="#9fc3cc"/>
+    <line x1="14" y1="24" x2="${w-20}" y2="24" stroke="#fff" stroke-width="2" opacity=".5"/>
+  `)
+});
+
+reg({
+  id:"water_pump", name:"Small DC Water Pump", category:"Mechanical", w:70, h:60,
+  pins:[ {id:"pos",name:"+ (VCC)",x:14,y:56},{id:"neg",name:"- (GND)",x:28,y:56} ],
+  dynamic:"waterpump",
+  art:(w,h)=> svg(w,h,`
+    <rect x="6" y="14" width="40" height="34" rx="8" fill="#2f6fb0"/>
+    <circle class="pump-impeller" cx="26" cy="31" r="11" fill="#1a4f73" style="transform-origin:26px 31px;"/>
+    <path class="pump-impeller" d="M26 22 v18 M18 31 h16 M20 25 l12 12 M32 25 l-12 12" stroke="#9cf" stroke-width="1.6" style="transform-origin:26px 31px;"/>
+    <rect x="46" y="24" width="16" height="14" rx="3" fill="#2f6fb0"/>
+    <line x1="14" y1="48" x2="14" y2="56" stroke="#c0392b" stroke-width="2"/>
+    <line x1="28" y1="48" x2="28" y2="56" stroke="#222" stroke-width="2"/>
+  `)
+});
+
+reg({
+  id:"fan_blades", name:"Fan Blades", category:"Mechanical", w:64, h:64,
+  pins:[ {id:"pos",name:"+ (VCC)",x:22,y:60},{id:"neg",name:"- (GND)",x:38,y:60} ],
+  dynamic:"fan",
+  art:(w,h)=> svg(w,h,`
+    <g class="fan-blades" style="transform-origin:30px 28px;">
+      <ellipse cx="30" cy="12" rx="7" ry="16" fill="#9fb0b6"/>
+      <ellipse cx="30" cy="12" rx="7" ry="16" fill="#9fb0b6" transform="rotate(120 30 28)"/>
+      <ellipse cx="30" cy="12" rx="7" ry="16" fill="#9fb0b6" transform="rotate(240 30 28)"/>
+      <circle cx="30" cy="28" r="6" fill="#333"/>
+    </g>
+    <line x1="22" y1="50" x2="22" y2="60" stroke="#c0392b" stroke-width="2"/>
+    <line x1="38" y1="50" x2="38" y2="60" stroke="#222" stroke-width="2"/>
+  `)
+});
+
+reg({
+  id:"switch_box_casing", name:"Switch Box Casing", category:"Mechanical", w:70, h:56,
+  pins:[],
+  art:(w,h)=> svg(w,h,`
+    <rect x="4" y="4" width="${w-8}" height="${h-8}" rx="4" fill="#e8e8e8"/>
+    <rect x="4" y="4" width="${w-8}" height="${h-8}" rx="4" fill="none" stroke="#aaa" stroke-width="2"/>
+    <rect x="${w/2-11}" y="${h/2-9}" width="22" height="18" rx="2" fill="#333"/>
+    <line x1="${w/2-4}" y1="${h/2-3}" x2="${w/2-4}" y2="${h/2+5}" stroke="#eee" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="10" cy="10" r="2" fill="#999"/><circle cx="${w-10}" cy="10" r="2" fill="#999"/>
+    <circle cx="10" cy="${h-10}" r="2" fill="#999"/><circle cx="${w-10}" cy="${h-10}" r="2" fill="#999"/>
+  `)
+});
+
+/* ---- Thermistors (dedicated folder) ---- */
+reg({
+  id:"thermistor_ntc", name:"NTC Thermistor", category:"Thermistors", w:44, h:44,
+  pins:[ {id:"l1",name:"Leg A",x:12,y:40},{id:"l2",name:"Leg B",x:30,y:40} ],
+  passThrough:[["l1","l2"]],
+  art:(w,h)=> svg(w,h,`
+    <line x1="12" y1="26" x2="12" y2="40" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="30" y1="26" x2="30" y2="40" stroke="#c7cdd1" stroke-width="2"/>
+    <circle cx="21" cy="16" r="15" fill="#3a6ea5"/>
+    <text x="21" y="20" font-size="9" fill="#dff" text-anchor="middle" font-family="monospace">t°</text>
+  `)
+});
+
+reg({
+  id:"thermistor_ptc", name:"PTC Thermistor", category:"Thermistors", w:44, h:44,
+  pins:[ {id:"l1",name:"Leg A",x:12,y:40},{id:"l2",name:"Leg B",x:30,y:40} ],
+  passThrough:[["l1","l2"]],
+  art:(w,h)=> svg(w,h,`
+    <line x1="12" y1="26" x2="12" y2="40" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="30" y1="26" x2="30" y2="40" stroke="#c7cdd1" stroke-width="2"/>
+    <circle cx="21" cy="16" r="15" fill="#a53a3a"/>
+    <text x="21" y="20" font-size="9" fill="#fee" text-anchor="middle" font-family="monospace">t°</text>
+  `)
+});
+
+/* ---- WiFi Modules (ESP8266 / ESP32 — programmed the same way as Arduino boards) ---- */
+(function () {
+  const w = 210, h = 110;
+  const topPins = ["3V3","EN","RST","A0","D0","D1","D2","D3","D4"];
+  const botPins = ["GND","VIN","D5","D6","D7","D8","RX","TX"];
+  const pins = [];
+  const topGap = (w - 2*16) / (topPins.length-1), botGap = (w - 2*16) / (botPins.length-1);
+  topPins.forEach((p,i)=> pins.push({id:"ET_"+p.replace(/[^A-Z0-9]/gi,"")+"_"+i, name:p, x:16+i*topGap, y:12}));
+  botPins.forEach((p,i)=> pins.push({id:"EB_"+p.replace(/[^A-Z0-9]/gi,"")+"_"+i, name:p, x:16+i*botGap, y:h-12}));
+  reg({
+    id:"esp8266", name:"WiFi Module (ESP8266 / NodeMCU)", category:"Microcontrollers", w, h, pins,
+    busGroups:[ pins.filter(p=>p.name==="GND").map(p=>p.id) ],
+    dynamic:"arduino",
+    art:(w,h)=> svg(w,h,`
+      <rect x="2" y="2" width="${w-4}" height="${h-4}" rx="6" fill="#0d5c8c"/>
+      <rect x="2" y="2" width="${w-4}" height="${h-4}" rx="6" fill="none" stroke="#093f60" stroke-width="2"/>
+      <rect x="${w/2-30}" y="${h/2-22}" width="60" height="44" rx="2" fill="#c7cdd1"/>
+      <text x="${w/2}" y="${h/2+3}" font-size="8" fill="#333" text-anchor="middle" font-family="monospace">ESP-12</text>
+      <text x="${w/2}" y="${h-24}" font-size="11" fill="#eaf6ff" text-anchor="middle" font-family="'Space Grotesk',sans-serif" font-weight="700">ESP8266</text>
+      <rect x="6" y="8" width="${w-12}" height="5" fill="#093f60"/>
+      <rect x="6" y="${h-13}" width="${w-12}" height="5" fill="#093f60"/>
+    `)
+  });
+})();
+
+(function () {
+  const w = 300, h = 130;
+  const topPins = ["3V3","EN","VP","VN","D34","D35","D32","D33","D25","D26","D27","D14","D12","D13","GND"];
+  const botPins = ["GND","D23","D22","TX0","RX0","D21","D19","D18","D5","D17","D16","D4","D0","D2","D15","VIN"];
+  const pins = [];
+  const topGap = (w - 2*16) / (topPins.length-1), botGap = (w - 2*16) / (botPins.length-1);
+  topPins.forEach((p,i)=> pins.push({id:"ZT_"+p.replace(/[^A-Z0-9]/gi,"")+"_"+i, name:p, x:16+i*topGap, y:12}));
+  botPins.forEach((p,i)=> pins.push({id:"ZB_"+p.replace(/[^A-Z0-9]/gi,"")+"_"+i, name:p, x:16+i*botGap, y:h-12}));
+  reg({
+    id:"esp32", name:"WiFi Module (ESP32 DevKit)", category:"Microcontrollers", w, h, pins,
+    busGroups:[ pins.filter(p=>p.name==="GND").map(p=>p.id) ],
+    dynamic:"arduino",
+    art:(w,h)=> svg(w,h,`
+      <rect x="2" y="2" width="${w-4}" height="${h-4}" rx="6" fill="#0d5c8c"/>
+      <rect x="2" y="2" width="${w-4}" height="${h-4}" rx="6" fill="none" stroke="#093f60" stroke-width="2"/>
+      <rect x="${w/2-40}" y="${h/2-26}" width="80" height="52" rx="2" fill="#8a8a8a"/>
+      <text x="${w/2}" y="${h/2+3}" font-size="8" fill="#222" text-anchor="middle" font-family="monospace">ESP32-WROOM</text>
+      <text x="${w/2}" y="${h-24}" font-size="12" fill="#eaf6ff" text-anchor="middle" font-family="'Space Grotesk',sans-serif" font-weight="700">ESP32 DEVKIT</text>
+      <rect x="6" y="8" width="${w-12}" height="5" fill="#093f60"/>
+      <rect x="6" y="${h-13}" width="${w-12}" height="5" fill="#093f60"/>
+    `)
+  });
+})();
 
 /* ---- DC Power Supply (bench supply for testing, dual fixed rails) ---- */
 reg({
@@ -1560,8 +1770,9 @@ function redrawWires() {
     const d = `M ${p1.x} ${p1.y} C ${p1.x+dx} ${p1.y}, ${p2.x-dx} ${p2.y}, ${p2.x} ${p2.y}`;
     const active = w._active ? "active" : "";
     const selected = state.selectedWire===w.id ? "selected" : "";
-    html += `<path class="wire-hit" data-id="${w.id}" d="${d}"></path>`;
-    html += `<path class="wire-path ${active} ${selected}" data-id="${w.id}" d="${d}" stroke="${w.color}" stroke-width="3" style="color:${w.color}"></path>`;
+    const tooltip = `${describePin(w.a)}  ↔  ${describePin(w.b)}`;
+    html += `<path class="wire-hit" data-id="${w.id}" d="${d}"><title>${tooltip}</title></path>`;
+    html += `<path class="wire-path ${active} ${selected}" data-id="${w.id}" d="${d}" stroke="${w.color}" stroke-width="3" style="color:${w.color}"><title>${tooltip}</title></path>`;
   });
   els.wireLayer.innerHTML = html;
   els.wireLayer.querySelectorAll(".wire-hit").forEach(p=>{
@@ -1778,6 +1989,15 @@ function evaluateCircuit() {
       if (shaft) shaft.style.animation = on ? "spin 0.6s linear infinite" : "none";
       shaft && (shaft.style.transformOrigin = "30px 30px");
     }
+    if (def.dynamic==="waterpump") {
+      const on = (isHigh(inst.id,"pos")&&isGnd(inst.id,"neg")) || (isHigh(inst.id,"neg")&&isGnd(inst.id,"pos"));
+      el.querySelectorAll(".pump-impeller").forEach(p=> p.style.animation = on ? "spin 0.5s linear infinite" : "none");
+    }
+    if (def.dynamic==="fan") {
+      const on = (isHigh(inst.id,"pos")&&isGnd(inst.id,"neg")) || (isHigh(inst.id,"neg")&&isGnd(inst.id,"pos"));
+      const blades = el.querySelector(".fan-blades");
+      if (blades) blades.style.animation = on ? "spin 0.35s linear infinite" : "none";
+    }
     if (def.dynamic==="servo") {
       const on = isHigh(inst.id,"vcc") && isGnd(inst.id,"gnd");
       const arm = el.querySelector(".servo-arm");
@@ -1828,7 +2048,58 @@ function evaluateCircuit() {
       const powered = def.pins.some(p => p.name==="5V" && isHigh(inst.id,p.id));
       el.style.filter = powered ? "drop-shadow(0 0 6px #39ff88)" : "none";
     }
+    if (def.dynamic==="multimeter") {
+      const screen = el.querySelector(".mm-screen-text");
+      if (screen) {
+        if (!state.simulate) {
+          screen.textContent = "0.00";
+        } else {
+          const rp = dsu.find(nodeKey(inst.id,"probe_pos"));
+          const rn = dsu.find(nodeKey(inst.id,"probe_neg"));
+          if (rp === rn) {
+            screen.textContent = "0.00Ω";
+          } else {
+            const posHigh = highRoots.has(rp), posGnd = gndRoots.has(rp);
+            const negHigh = highRoots.has(rn), negGnd = gndRoots.has(rn);
+            if (posHigh && negGnd) {
+              const v = estimateVoltageForRoot(rp);
+              screen.textContent = (v!==null ? v.toFixed(2) : "5.00") + "V";
+            } else if (posGnd && negHigh) {
+              const v = estimateVoltageForRoot(rn);
+              screen.textContent = "-" + (v!==null ? v.toFixed(2) : "5.00") + "V";
+            } else if (posGnd && negGnd) {
+              screen.textContent = "0.00V";
+            } else {
+              screen.textContent = "OL";
+            }
+          }
+        }
+      }
+    }
   });
+
+  // best-effort lookup of a real-ish voltage value for a given electrical node,
+  // used only for the multimeter's readout
+  function estimateVoltageForRoot(targetRoot) {
+    for (const inst of state.components) {
+      const idef = LIB[inst.type];
+      if (inst.type === "battery9v" && dsu.find(nodeKey(inst.id,"pos")) === targetRoot) return 9;
+      if (inst.type === "battery_variable" && dsu.find(nodeKey(inst.id,"pos")) === targetRoot) return inst.voltage;
+      if (inst.type === "barrel_jack" && dsu.find(nodeKey(inst.id,"pos")) === targetRoot) return 9;
+      if (inst.type === "voltage_regulator" && dsu.find(nodeKey(inst.id,"vout")) === targetRoot) return 5;
+      if (inst.type === "dc_power_supply") {
+        if (dsu.find(nodeKey(inst.id,"v5")) === targetRoot) return 5;
+        if (dsu.find(nodeKey(inst.id,"v12")) === targetRoot) return 12;
+      }
+      if (idef.dynamic === "arduino" || idef.dynamic === "raspberrypi") {
+        for (const p of idef.pins) {
+          if (p.name === "5V" && dsu.find(nodeKey(inst.id,p.id)) === targetRoot) return 5;
+          if (p.name === "3V3" && dsu.find(nodeKey(inst.id,p.id)) === targetRoot) return 3.3;
+        }
+      }
+    }
+    return null;
+  }
 
   // wire active glow: a wire is "active" if either end is high or gnd-connected and simulate is on
   state.wires.forEach(w=>{
