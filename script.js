@@ -537,6 +537,42 @@ reg({
   `)
 });
 
+reg({
+  id:"diode_1n4007", name:"Diode (1N4007)", category:"Diodes", w:64, h:24,
+  pins:[ {id:"anode",name:"Anode (+)",x:4,y:12},{id:"cathode",name:"Cathode (-)",x:60,y:12} ],
+  passThrough:[["anode","cathode"]],
+  art:(w,h)=> svg(w,h,`
+    <line x1="4" y1="12" x2="18" y2="12" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="46" y1="12" x2="60" y2="12" stroke="#c7cdd1" stroke-width="2"/>
+    <rect x="18" y="3" width="28" height="18" rx="2" fill="#1c1c1c"/>
+    <rect x="40" y="3" width="4" height="18" fill="#dcdcdc"/>
+    <text x="30" y="30" font-size="6" fill="#8a8" text-anchor="middle" font-family="monospace">1N4007</text>
+  `)
+});
+
+/* ---- Bridge Rectifier (4-diode AC-to-DC converter block) ---- */
+reg({
+  id:"bridge_rectifier", name:"Bridge Rectifier (AC to DC)", category:"Diodes", w:64, h:64,
+  pins:[
+    {id:"ac1",name:"AC ~",x:12,y:6},{id:"ac2",name:"AC ~",x:52,y:6},
+    {id:"dcpos",name:"DC + OUT",x:12,y:58},{id:"dcneg",name:"DC - OUT",x:52,y:58}
+  ],
+  regulators:[ {vin:"ac1", out:"dcpos"}, {vin:"ac2", out:"dcpos"} ],
+  gndPass:[ {vin:"ac1", out:"dcneg"}, {vin:"ac2", out:"dcneg"} ],
+  art:(w,h)=> svg(w,h,`
+    <line x1="12" y1="6" x2="12" y2="16" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="52" y1="6" x2="52" y2="16" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="12" y1="48" x2="12" y2="58" stroke="#c0392b" stroke-width="2"/>
+    <line x1="52" y1="48" x2="52" y2="58" stroke="#222" stroke-width="2"/>
+    <rect x="8" y="16" width="48" height="32" rx="4" fill="#1c1c1c"/>
+    <path d="M20 24 l8 8 -8 8 M44 24 l-8 8 8 8" fill="none" stroke="#666" stroke-width="1.6"/>
+    <text x="12" y="14" font-size="7" fill="#9cf" text-anchor="middle">~</text>
+    <text x="52" y="14" font-size="7" fill="#9cf" text-anchor="middle">~</text>
+    <text x="12" y="45" font-size="8" fill="#e66" text-anchor="middle">+</text>
+    <text x="52" y="45" font-size="8" fill="#ccc" text-anchor="middle">-</text>
+  `)
+});
+
 /* ---- Transistors (dedicated folder) ---- */
 reg({
   id:"bjt", name:"BJT (NPN Transistor)", category:"Transistors", w:50, h:64,
@@ -550,6 +586,51 @@ reg({
     <path d="M10 30 a15 16 0 0 1 30 0 v16 h-30z" fill="#1c1c1c"/>
     <rect x="8" y="34" width="4" height="10" fill="#1c1c1c"/>
     <text x="25" y="24" font-size="6" fill="#8a8" text-anchor="middle" font-family="monospace">NPN</text>
+  `)
+});
+
+reg({
+  id:"bc547", name:"BC547 (NPN Transistor)", category:"Transistors", w:50, h:64,
+  pins:[ {id:"emitter",name:"Emitter",x:15,y:60},{id:"base",name:"Base",x:25,y:60},{id:"collector",name:"Collector",x:35,y:60} ],
+  switchPins:{control:"base", a:"collector", b:"emitter"},
+  dynamic:"transistor_switch",
+  art:(w,h)=> svg(w,h,`
+    <line x1="15" y1="46" x2="15" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="25" y1="30" x2="25" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="35" y1="46" x2="35" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <path d="M10 30 a15 16 0 0 1 30 0 v16 h-30z" fill="#1c1c1c"/>
+    <rect x="8" y="34" width="4" height="10" fill="#1c1c1c"/>
+    <text x="25" y="24" font-size="6" fill="#8a8" text-anchor="middle" font-family="monospace">BC547</text>
+  `)
+});
+
+reg({
+  id:"bc557", name:"BC557 (PNP Transistor)", category:"Transistors", w:50, h:64,
+  pins:[ {id:"emitter",name:"Emitter",x:15,y:60},{id:"base",name:"Base",x:25,y:60},{id:"collector",name:"Collector",x:35,y:60} ],
+  switchPins:{control:"base", a:"collector", b:"emitter", activeLow:true},
+  dynamic:"transistor_switch",
+  art:(w,h)=> svg(w,h,`
+    <line x1="15" y1="46" x2="15" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="25" y1="30" x2="25" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="35" y1="46" x2="35" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <path d="M10 30 a15 16 0 0 1 30 0 v16 h-30z" fill="#3a2b2b"/>
+    <rect x="8" y="34" width="4" height="10" fill="#3a2b2b"/>
+    <text x="25" y="24" font-size="6" fill="#e9a" text-anchor="middle" font-family="monospace">BC557</text>
+  `)
+});
+
+reg({
+  id:"n2222", name:"2N2222 (NPN Transistor)", category:"Transistors", w:50, h:64,
+  pins:[ {id:"emitter",name:"Emitter",x:15,y:60},{id:"base",name:"Base",x:25,y:60},{id:"collector",name:"Collector",x:35,y:60} ],
+  switchPins:{control:"base", a:"collector", b:"emitter"},
+  dynamic:"transistor_switch",
+  art:(w,h)=> svg(w,h,`
+    <line x1="15" y1="46" x2="15" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="25" y1="30" x2="25" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="35" y1="46" x2="35" y2="60" stroke="#c7cdd1" stroke-width="2"/>
+    <path d="M10 30 a15 16 0 0 1 30 0 v16 h-30z" fill="#1c1c1c"/>
+    <rect x="8" y="34" width="4" height="10" fill="#1c1c1c"/>
+    <text x="25" y="24" font-size="5.5" fill="#8a8" text-anchor="middle" font-family="monospace">2N2222</text>
   `)
 });
 
@@ -620,6 +701,58 @@ makeDipIC({ id:"ic_memory", name:"Memory IC (EEPROM)", w:90, h:52, label:"24LC25
 
 makeDipIC({ id:"ic_opamp", name:"Operational Amplifier", w:90, h:52, label:"LM358",
   topPins:["VCC","OUT2","IN2-","IN2+"], botPins:["GND","OUT1","IN1-","IN1+"] });
+
+/* ---- Wires (dedicated folder: jumpers and probe leads) ---- */
+reg({
+  id:"jumper_mm", name:"Jumper Wire (Male-Male)", category:"Wires", w:96, h:22,
+  pins:[ {id:"l1",name:"End A",x:6,y:14},{id:"l2",name:"End B",x:90,y:14} ],
+  passThrough:[["l1","l2"]],
+  art:(w,h)=> svg(w,h,`
+    <rect x="2" y="9" width="10" height="8" rx="1.5" fill="#1c1c1c"/>
+    <line x1="0" y1="13" x2="6" y2="13" stroke="#c7cdd1" stroke-width="2.4"/>
+    <line x1="12" y1="13" x2="${w-12}" y2="13" stroke="#e2453f" stroke-width="4" stroke-linecap="round"/>
+    <rect x="${w-12}" y="9" width="10" height="8" rx="1.5" fill="#1c1c1c"/>
+    <line x1="${w-6}" y1="13" x2="${w}" y2="13" stroke="#c7cdd1" stroke-width="2.4"/>
+  `)
+});
+
+reg({
+  id:"jumper_mf", name:"Jumper Wire (Male-Female)", category:"Wires", w:96, h:22,
+  pins:[ {id:"l1",name:"End A (Male)",x:6,y:14},{id:"l2",name:"End B (Female)",x:90,y:14} ],
+  passThrough:[["l1","l2"]],
+  art:(w,h)=> svg(w,h,`
+    <rect x="2" y="9" width="10" height="8" rx="1.5" fill="#1c1c1c"/>
+    <line x1="0" y1="13" x2="6" y2="13" stroke="#c7cdd1" stroke-width="2.4"/>
+    <line x1="12" y1="13" x2="${w-14}" y2="13" stroke="#2f9e44" stroke-width="4" stroke-linecap="round"/>
+    <rect x="${w-14}" y="6" width="14" height="14" rx="2" fill="#1c1c1c"/>
+    <circle cx="${w-7}" cy="13" r="2.4" fill="#555"/>
+  `)
+});
+
+reg({
+  id:"jumper_ff", name:"Jumper Wire (Female-Female)", category:"Wires", w:96, h:22,
+  pins:[ {id:"l1",name:"End A (Female)",x:6,y:14},{id:"l2",name:"End B (Female)",x:90,y:14} ],
+  passThrough:[["l1","l2"]],
+  art:(w,h)=> svg(w,h,`
+    <rect x="2" y="6" width="14" height="14" rx="2" fill="#1c1c1c"/>
+    <circle cx="9" cy="13" r="2.4" fill="#555"/>
+    <line x1="16" y1="13" x2="${w-16}" y2="13" stroke="#2f6fb0" stroke-width="4" stroke-linecap="round"/>
+    <rect x="${w-16}" y="6" width="14" height="14" rx="2" fill="#1c1c1c"/>
+    <circle cx="${w-9}" cy="13" r="2.4" fill="#555"/>
+  `)
+});
+
+reg({
+  id:"probe_wire", name:"Probe Wire (Test Lead)", category:"Wires", w:100, h:28,
+  pins:[ {id:"l1",name:"Probe Tip",x:6,y:14},{id:"l2",name:"Banana Plug",x:94,y:14} ],
+  passThrough:[["l1","l2"]],
+  art:(w,h)=> svg(w,h,`
+    <path d="M2 14 l10 -5 v10z" fill="#c0392b"/>
+    <line x1="12" y1="14" x2="${w-16}" y2="14" stroke="#e8c11c" stroke-width="4" stroke-linecap="round"/>
+    <rect x="${w-16}" y="6" width="6" height="16" rx="2" fill="#1c1c1c"/>
+    <rect x="${w-10}" y="9" width="8" height="10" rx="3" fill="#8a8a8a"/>
+  `)
+});
 
 /* ---- LDR photoresistor ---- */
 reg({
@@ -820,6 +953,173 @@ reg({
   `)
 });
 
+/* ---- Voltage Regulator (linear regulator, e.g. 7805) ---- */
+reg({
+  id:"voltage_regulator", name:"Voltage Regulator (7805)", category:"Power", w:56, h:64,
+  pins:[ {id:"vin",name:"VIN",x:14,y:60},{id:"gnd",name:"GND",x:28,y:60},{id:"vout",name:"VOUT",x:42,y:60} ],
+  regulator:{ vin:"vin", out:"vout" },
+  art:(w,h)=> svg(w,h,`
+    <rect x="4" y="4" width="48" height="42" rx="3" fill="#2b2b2b"/>
+    <circle cx="28" cy="14" r="4" fill="none" stroke="#666" stroke-width="1.4"/>
+    <rect x="10" y="46" width="36" height="10" fill="#8a8a8a"/>
+    <text x="28" y="34" font-size="8" fill="#9c9" text-anchor="middle" font-family="monospace">7805</text>
+  `)
+});
+
+/* ---- Barrel Jack (DC power connector, feeds an Arduino's power input) ---- */
+reg({
+  id:"barrel_jack", name:"Barrel Jack (DC Power)", category:"Power", w:52, h:46,
+  pins:[ {id:"pos",name:"Center Pin (+)",x:18,y:42},{id:"neg",name:"Sleeve (-)",x:34,y:42} ],
+  art:(w,h)=> svg(w,h,`
+    <rect x="4" y="10" width="44" height="26" rx="4" fill="#1c1c1c"/>
+    <circle cx="26" cy="23" r="11" fill="#333"/>
+    <circle cx="26" cy="23" r="5" fill="#111"/>
+    <line x1="18" y1="36" x2="18" y2="42" stroke="#c0392b" stroke-width="2"/>
+    <line x1="34" y1="36" x2="34" y2="42" stroke="#222" stroke-width="2"/>
+  `)
+});
+
+/* ---- Raspberry Pi boards (accurate 40-pin BCM GPIO header, shared across models) ---- */
+function makeRaspberryPiPins() {
+  // physical pin 1..40, laid out as two 20-pin rows exactly as on the real header
+  const row1 = ["3V3","GPIO2","GPIO3","GPIO4","GND","GPIO17","GPIO27","GPIO22","3V3","GPIO10","GPIO9","GPIO11","GND","ID_SD","GPIO5","GPIO6","GPIO13","GPIO19","GPIO26","GND"];
+  const row2 = ["5V","5V","GND","GPIO14","GPIO15","GPIO18","GND","GPIO23","GPIO24","GND","GPIO25","GPIO8","GPIO7","ID_SC","GND","GPIO12","GND","GPIO16","GPIO20","GPIO21"];
+  const pins = [];
+  const marginX = 18, gap = (260 - 2*marginX) / 19;
+  row1.forEach((nm,i)=> pins.push({id:"P1_"+nm+"_"+i, name:nm, x: marginX + i*gap, y: 22}));
+  row2.forEach((nm,i)=> pins.push({id:"P2_"+nm+"_"+i, name:nm, x: marginX + i*gap, y: 34}));
+  return pins;
+}
+
+function makeRaspberryPi(id, name, h, boardArt) {
+  const pins = makeRaspberryPiPins();
+  reg({
+    id, name, category:"Single Board Computers", w:260, h, pins,
+    busGroups:[
+      pins.filter(p=>p.name==="GND").map(p=>p.id),
+      pins.filter(p=>p.name==="3V3").map(p=>p.id),
+      pins.filter(p=>p.name==="5V").map(p=>p.id),
+    ],
+    dynamic:"raspberrypi",
+    art:(w,h)=> svg(w,h, `
+      <rect x="2" y="42" width="${w-4}" height="${h-44}" rx="6" fill="#2e7d32"/>
+      <rect x="2" y="42" width="${w-4}" height="${h-44}" rx="6" fill="none" stroke="#1b5e20" stroke-width="2"/>
+      ${Array.from({length:20}).map((_,i)=>`<rect x="${17+i*12.7}" y="18" width="9" height="20" fill="#2b2b2b"/>`).join("")}
+      ${boardArt(w,h)}
+      <text x="${w/2}" y="${h-10}" font-size="12" fill="#eaf6ff" text-anchor="middle" font-family="'Space Grotesk',sans-serif" font-weight="700">${name.toUpperCase()}</text>
+    `)
+  });
+}
+
+makeRaspberryPi("rpi4b", "Raspberry Pi 4 Model B", 190, (w,h)=>`
+  <rect x="14" y="${h-64}" width="30" height="20" fill="#c0c0c0"/>
+  <rect x="${w-70}" y="${h-64}" width="18" height="14" fill="#333"/>
+  <rect x="${w-46}" y="${h-64}" width="18" height="14" fill="#333"/>
+  <circle cx="${w-20}" cy="${h-50}" r="10" fill="#888"/>
+`);
+
+makeRaspberryPi("rpi3b", "Raspberry Pi 3 Model B", 170, (w,h)=>`
+  <rect x="14" y="${h-58}" width="34" height="22" fill="#c0c0c0"/>
+  <rect x="${w-90}" y="${h-58}" width="24" height="18" fill="#333"/>
+  <rect x="${w-60}" y="${h-58}" width="24" height="18" fill="#333"/>
+  <rect x="${w-30}" y="${h-58}" width="24" height="18" fill="#333"/>
+`);
+
+makeRaspberryPi("rpizero", "Raspberry Pi Zero W", 100, (w,h)=>`
+  <rect x="14" y="${h-40}" width="20" height="14" fill="#c0c0c0"/>
+  <circle cx="${w-24}" cy="${h-32}" r="7" fill="#888"/>
+`);
+
+/* ---- Water Storage Tank (built-in float switch; click the tank to fill/drain it) ---- */
+reg({
+  id:"water_tank", name:"Water Storage Tank", category:"Water Systems", w:90, h:130,
+  pins:[ {id:"a",name:"Float Switch A",x:10,y:126},{id:"b",name:"Float Switch B",x:24,y:126} ],
+  dynamic:"watertank",
+  art:(w,h)=> svg(w,h,`
+    <rect x="6" y="20" width="78" height="96" rx="6" fill="#dfe7ea" opacity=".9"/>
+    <rect x="6" y="20" width="78" height="96" rx="6" fill="none" stroke="#9fb0b6" stroke-width="2"/>
+    <clipPath id="tankClip-${w}-${h}"><rect x="8" y="22" width="74" height="92" rx="5"/></clipPath>
+    <g clip-path="url(#tankClip-${w}-${h})">
+      <rect class="tank-water" x="8" y="88" width="74" height="8" fill="#2f9ee0" opacity=".8"/>
+    </g>
+    <rect x="6" y="20" width="78" height="96" rx="6" fill="none" stroke="#9fb0b6" stroke-width="2"/>
+    <rect x="30" y="8" width="30" height="14" rx="2" fill="#9fb0b6"/>
+    <circle cx="16" cy="118" r="5" fill="#333"/>
+    <circle cx="30" cy="118" r="5" fill="#333"/>
+    <text x="45" y="14" font-size="7" fill="#456" text-anchor="middle" font-family="monospace">TANK</text>
+  `)
+});
+
+/* ---- DC Power Supply (bench supply for testing, dual fixed rails) ---- */
+reg({
+  id:"dc_power_supply", name:"DC Power Supply (Bench)", category:"Power", w:96, h:66,
+  pins:[ {id:"v5",name:"+5V OUT",x:16,y:62},{id:"gnd",name:"GND",x:48,y:62},{id:"v12",name:"+12V OUT",x:80,y:62} ],
+  art:(w,h)=> svg(w,h,`
+    <rect x="2" y="2" width="${w-4}" height="${h-4}" rx="4" fill="#3a3f47"/>
+    <rect x="8" y="8" width="46" height="18" rx="2" fill="#0a2e1f"/>
+    <text x="31" y="21" font-size="8" fill="#39ff88" text-anchor="middle" font-family="monospace">5.00V</text>
+    <circle cx="68" cy="17" r="9" fill="#111" stroke="#555" stroke-width="1.5"/>
+    <circle cx="86" cy="17" r="9" fill="#111" stroke="#555" stroke-width="1.5"/>
+    <line x1="16" y1="52" x2="16" y2="62" stroke="#c0392b" stroke-width="2"/>
+    <line x1="48" y1="52" x2="48" y2="62" stroke="#222" stroke-width="2"/>
+    <line x1="80" y1="52" x2="80" y2="62" stroke="#e07a1e" stroke-width="2"/>
+    <text x="${w/2}" y="42" font-size="7" fill="#ccc" text-anchor="middle" font-family="monospace">BENCH SUPPLY</text>
+  `)
+});
+
+/* ---- Toggle Switch (SPST ON/OFF; click to flip and stay) ---- */
+reg({
+  id:"toggle_switch", name:"Switch (ON/OFF Toggle)", category:"Power", w:54, h:50,
+  pins:[ {id:"a",name:"Terminal A",x:12,y:46},{id:"b",name:"Terminal B",x:42,y:46} ],
+  dynamic:"toggleswitch",
+  art:(w,h)=> svg(w,h,`
+    <rect x="6" y="16" width="42" height="24" rx="4" fill="#2b2b2b"/>
+    <circle cx="18" cy="28" r="5" fill="#666"/>
+    <circle cx="36" cy="28" r="5" fill="#666"/>
+    <line class="switch-lever" x1="18" y1="28" x2="36" y2="18" stroke="#dcdcdc" stroke-width="4" stroke-linecap="round" style="transform-origin:18px 28px;"/>
+    <line x1="12" y1="40" x2="12" y2="46" stroke="#c7cdd1" stroke-width="2"/>
+    <line x1="42" y1="40" x2="42" y2="46" stroke="#c7cdd1" stroke-width="2"/>
+  `)
+});
+
+/* ---- Water Level Probe (3-prong resistive probe) ---- */
+reg({
+  id:"water_level_probe", name:"Water Level Probe", category:"Sensors", w:60, h:58,
+  pins:[ {id:"vcc",name:"VCC",x:14,y:54},{id:"gnd",name:"GND",x:30,y:54},{id:"sig",name:"Signal",x:46,y:54} ],
+  art:(w,h)=> svg(w,h,`
+    <rect x="6" y="6" width="48" height="20" rx="3" fill="#2f7d4f"/>
+    <line x1="16" y1="26" x2="16" y2="48" stroke="#c7cdd1" stroke-width="2.4"/>
+    <line x1="30" y1="26" x2="30" y2="44" stroke="#c7cdd1" stroke-width="2.4"/>
+    <line x1="44" y1="26" x2="44" y2="52" stroke="#c7cdd1" stroke-width="2.4"/>
+    <text x="30" y="18" font-size="6" fill="#dff" text-anchor="middle" font-family="monospace">LEVEL</text>
+  `)
+});
+
+/* ---- Microphone Module (sound / clap detector) ---- */
+reg({
+  id:"mic_module", name:"Microphone Module", category:"Sensors", w:56, h:60,
+  pins:[ {id:"gnd",name:"GND",x:14,y:56},{id:"vcc",name:"VCC",x:28,y:56},{id:"out",name:"OUT (digital)",x:42,y:56} ],
+  art:(w,h)=> svg(w,h,`
+    <rect x="4" y="20" width="48" height="26" rx="3" fill="#2f7d4f"/>
+    <circle cx="28" cy="16" r="14" fill="#c7cdd1"/>
+    <circle cx="28" cy="16" r="14" fill="none" stroke="#8a969b" stroke-width="1.5"/>
+    ${Array.from({length:6}).map((_,i)=>`<circle cx="${28+7*Math.cos(i*Math.PI/3)}" cy="${16+7*Math.sin(i*Math.PI/3)}" r="1.3" fill="#666"/>`).join("")}
+    <circle cx="42" cy="34" r="5" fill="#333"/>
+  `)
+});
+
+/* ---- Rain Sensor Module (raindrop detection board) ---- */
+reg({
+  id:"rain_sensor", name:"Rain Sensor Module", category:"Sensors", w:80, h:70,
+  pins:[ {id:"vcc",name:"VCC",x:18,y:66},{id:"gnd",name:"GND",x:34,y:66},{id:"do",name:"DO (digital)",x:50,y:66},{id:"ao",name:"AO (analog)",x:66,y:66} ],
+  art:(w,h)=> svg(w,h,`
+    <rect x="4" y="4" width="72" height="34" rx="2" fill="#8a5a2b"/>
+    ${Array.from({length:6}).map((_,r)=>`<line x1="10" y1="${10+r*5}" x2="72" y2="${10+r*5}" stroke="#c98a4b" stroke-width="1.5"/>`).join("")}
+    <rect x="16" y="42" width="48" height="20" rx="2" fill="#2f7d4f"/>
+    <circle cx="26" cy="52" r="4" fill="#333"/>
+  `)
+});
+
 /* Sorted list for palette: category then name (or numeric sortKey when present, e.g. resistor values) */
 function getSortedLibrary() {
   return Object.values(LIB).sort((a,b)=>{
@@ -928,6 +1228,27 @@ async function loop() {
 `;
   }
   if (inst.type === "battery_variable" && inst.voltage === undefined) inst.voltage = 5;
+  if (def.dynamic === "raspberrypi" && inst.pycode === undefined) {
+    inst.pycode =
+`# Real Python, run in your browser via Pyodide.
+# Uses a small RPi.GPIO-compatible shim — GPIO.output()/GPIO.input() drive
+# the pins you've wired up. Bounded loops are safest (a "while True" with
+# time.sleep will keep this tab busy for as long as it runs).
+import RPi.GPIO as GPIO
+import time
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(17, GPIO.OUT)
+
+for i in range(10):
+    GPIO.output(17, GPIO.HIGH)
+    time.sleep(0.3)
+    GPIO.output(17, GPIO.LOW)
+    time.sleep(0.3)
+
+GPIO.cleanup()
+`;
+  }
 }
 
 function addComponent(type, x, y) {
@@ -979,6 +1300,17 @@ function renderComponent(inst) {
     const vl = body.querySelector(".voltage-label");
     if (vl) vl.textContent = inst.voltage + "V";
   }
+  if (def.dynamic === "watertank" && inst.pressed) {
+    const water = body.querySelector(".tank-water");
+    if (water) { water.setAttribute("height", "70"); water.setAttribute("y", "26"); }
+  }
+  if (def.dynamic === "button" && inst.pressed) {
+    body.querySelector(".btn-cap-inner")?.setAttribute("fill", "#39ff88");
+  }
+  if (def.dynamic === "toggleswitch" && inst.pressed) {
+    const lever = body.querySelector(".switch-lever");
+    if (lever) { lever.style.transform = "rotate(22deg)"; lever.setAttribute("stroke", "#39ff88"); }
+  }
   wrap.appendChild(body);
 
   def.pins.forEach(p=>{
@@ -1024,6 +1356,22 @@ function renderComponent(inst) {
       evaluateCircuit();
       persist();
     }
+    if (def.dynamic==="watertank") {
+      inst.pressed = !inst.pressed;
+      const water = body.querySelector(".tank-water");
+      if (water) water.setAttribute("height", inst.pressed ? "70" : "8");
+      if (water) water.setAttribute("y", inst.pressed ? "26" : "88");
+      evaluateCircuit();
+      persist();
+    }
+    if (def.dynamic==="toggleswitch") {
+      inst.pressed = !inst.pressed;
+      const lever = body.querySelector(".switch-lever");
+      if (lever) lever.style.transform = inst.pressed ? "rotate(22deg)" : "rotate(0deg)";
+      if (lever) lever.setAttribute("stroke", inst.pressed ? "#39ff88" : "#dcdcdc");
+      evaluateCircuit();
+      persist();
+    }
   });
 
   els.compLayer.appendChild(wrap);
@@ -1031,6 +1379,7 @@ function renderComponent(inst) {
 
 function removeComponent(id) {
   stopLoop(id);
+  stopPyRunner(id);
   stopBuzzerSound(id);
   state.components = state.components.filter(c=>c.id!==id);
   state.wires = state.wires.filter(w=> w.a.c!==id && w.b.c!==id);
@@ -1085,6 +1434,18 @@ function renderInspectorForComponent(id) {
       </div>
       <p style="font-size:10.5px;">${isRunning ? "Running…" : "Not running"}</p>`;
   }
+  if (def.dynamic === "raspberrypi") {
+    const isRunning = !!pyRunners[id];
+    extra += `
+      <h4>Python script</h4>
+      <p style="margin-top:-4px;">Real Python via Pyodide, with a tiny <code>RPi.GPIO</code> shim wired to this board's pins. First run downloads the Python runtime (~10MB) — needs internet. Prefer bounded loops (<code>for</code> not <code>while True</code>) since <code>time.sleep</code> pauses the tab.</p>
+      <textarea id="pyEditor" spellcheck="false" style="width:100%;min-height:180px;background:var(--bg-deepest);color:var(--silkscreen);font-family:var(--font-mono);font-size:11.5px;border:1px solid var(--pcb-green-light);border-radius:6px;padding:8px;">${inst.pycode}</textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-power ${isRunning ? 'active':''}" id="runPyBtn" style="flex:1;justify-content:center;">▶ Run</button>
+        <button class="btn btn-ghost" id="stopPyBtn" style="flex:1;justify-content:center;">■ Stop</button>
+      </div>
+      <p style="font-size:10.5px;">${isRunning ? "Running…" : "Not running"}</p>`;
+  }
 
   els.inspectorContent.innerHTML = `
     <h3>${def.name}</h3>
@@ -1120,6 +1481,18 @@ function renderInspectorForComponent(id) {
     });
     document.getElementById("stopCodeBtn").addEventListener("click", ()=>{
       stopLoop(id); flashStatus("Code stopped"); renderInspectorForComponent(id);
+    });
+  }
+  if (def.dynamic === "raspberrypi") {
+    const editor = document.getElementById("pyEditor");
+    editor.addEventListener("input", ()=>{ inst.pycode = editor.value; persist(); });
+    document.getElementById("runPyBtn").addEventListener("click", ()=>{
+      inst.pycode = editor.value; persist();
+      renderInspectorForComponent(id);
+      runRaspberryPiCode(id).then(()=> renderInspectorForComponent(id));
+    });
+    document.getElementById("stopPyBtn").addEventListener("click", ()=>{
+      stopPyRunner(id); flashStatus("Python script stopped"); renderInspectorForComponent(id);
     });
   }
 }
@@ -1277,7 +1650,6 @@ function evaluateCircuit() {
   // internal component connectivity
   const highSources = new Set();
   const gndRefs = new Set();
-  const switchComponents = [];
 
   state.components.forEach(inst=>{
     const def = LIB[inst.type];
@@ -1292,7 +1664,15 @@ function evaluateCircuit() {
       if (groups && groups.length===2) dsu.union(nodeKey(inst.id,groups[0][0]), nodeKey(inst.id,groups[1][0]));
     }
 
-    if (def.switchPins) switchComponents.push(inst);
+    if (def.dynamic==="watertank" && inst.pressed) {
+      // "full" closes the built-in float switch between its two pins
+      dsu.union(nodeKey(inst.id,"a"), nodeKey(inst.id,"b"));
+    }
+
+    if (def.dynamic==="toggleswitch" && inst.pressed) {
+      // flipped ON closes the two terminals
+      dsu.union(nodeKey(inst.id,"a"), nodeKey(inst.id,"b"));
+    }
 
     if (!state.simulate) return;
 
@@ -1303,9 +1683,21 @@ function evaluateCircuit() {
         if (/^D/.test(p.name.replace("~","")) && inst.pinHigh[p.id]) highSources.add(nodeKey(inst.id,p.id));
       });
     }
-    if (inst.type==="battery9v" || inst.type==="battery_variable") {
+    if (def.dynamic==="raspberrypi") {
+      def.pins.forEach(p=>{
+        if (p.name==="GND") gndRefs.add(nodeKey(inst.id,p.id));
+        if (p.name==="5V" || p.name==="3V3") highSources.add(nodeKey(inst.id,p.id));
+        if (/^GPIO/.test(p.name) && inst.pinHigh[p.id]) highSources.add(nodeKey(inst.id,p.id));
+      });
+    }
+    if (inst.type==="battery9v" || inst.type==="battery_variable" || inst.type==="barrel_jack") {
       highSources.add(nodeKey(inst.id,"pos"));
       gndRefs.add(nodeKey(inst.id,"neg"));
+    }
+    if (inst.type==="dc_power_supply") {
+      highSources.add(nodeKey(inst.id,"v5"));
+      highSources.add(nodeKey(inst.id,"v12"));
+      gndRefs.add(nodeKey(inst.id,"gnd"));
     }
   });
 
@@ -1318,16 +1710,43 @@ function evaluateCircuit() {
   let roots = computeRoots();
 
   // Transistors (BJT/MOSFET) act as a switch: driving the control pin (base/gate)
-  // HIGH closes the collector-emitter / drain-source path. Resolved in a second
-  // pass since "is the control pin high" depends on the first pass's connectivity.
-  if (state.simulate && switchComponents.length) {
-    switchComponents.forEach(inst=>{
-      const def = LIB[inst.type];
-      const { control, a, b } = def.switchPins;
-      const controlHigh = roots.high.has(dsu.find(nodeKey(inst.id, control)));
-      if (controlHigh) dsu.union(nodeKey(inst.id,a), nodeKey(inst.id,b));
-    });
-    roots = computeRoots();
+  // HIGH closes the collector-emitter / drain-source path. Voltage regulators pass
+  // a HIGH source from VIN to VOUT once powered. Both are resolved iteratively
+  // since one component's output can feed the next component's input.
+  if (state.simulate) {
+    for (let pass=0; pass<3; pass++) {
+      let changed = false;
+      state.components.forEach(inst=>{
+        const def = LIB[inst.type];
+        if (def.switchPins) {
+          const { control, a, b, activeLow } = def.switchPins;
+          const controlRoot = dsu.find(nodeKey(inst.id, control));
+          const trigger = activeLow ? roots.gnd.has(controlRoot) : roots.high.has(controlRoot);
+          if (trigger) {
+            const ra=dsu.find(nodeKey(inst.id,a)), rb=dsu.find(nodeKey(inst.id,b));
+            if (ra!==rb) { dsu.union(ra,rb); changed = true; }
+          }
+        }
+        if (def.regulator) {
+          const { vin, out } = def.regulator;
+          const inputHigh = roots.high.has(dsu.find(nodeKey(inst.id, vin)));
+          const key = nodeKey(inst.id, out);
+          if (inputHigh && !highSources.has(key)) { highSources.add(key); changed = true; }
+        }
+        (def.regulators||[]).forEach(({vin,out})=>{
+          const inputHigh = roots.high.has(dsu.find(nodeKey(inst.id, vin)));
+          const key = nodeKey(inst.id, out);
+          if (inputHigh && !highSources.has(key)) { highSources.add(key); changed = true; }
+        });
+        (def.gndPass||[]).forEach(({vin,out})=>{
+          const inputGnd = roots.gnd.has(dsu.find(nodeKey(inst.id, vin)));
+          const key = nodeKey(inst.id, out);
+          if (inputGnd && !gndRefs.has(key)) { gndRefs.add(key); changed = true; }
+        });
+      });
+      if (!changed) break;
+      roots = computeRoots();
+    }
   }
 
   const highRoots = roots.high;
@@ -1401,9 +1820,13 @@ function evaluateCircuit() {
       if (plunger) plunger.style.animation = on ? "solenoidPulse .5s ease-in-out infinite alternate" : "none";
     }
     if (def.dynamic==="transistor_switch") {
-      const { control } = def.switchPins;
-      const on = isHigh(inst.id, control);
+      const { control, activeLow } = def.switchPins;
+      const on = activeLow ? isGnd(inst.id, control) : isHigh(inst.id, control);
       el.style.filter = on ? "drop-shadow(0 0 8px #39ff88)" : "none";
+    }
+    if (def.dynamic==="raspberrypi") {
+      const powered = def.pins.some(p => p.name==="5V" && isHigh(inst.id,p.id));
+      el.style.filter = powered ? "drop-shadow(0 0 6px #39ff88)" : "none";
     }
   });
 
@@ -1526,6 +1949,127 @@ function runArduinoCode(id) {
   flashStatus("Code running on " + def.name);
 }
 
+/* ============================================================
+   RASPBERRY PI PYTHON RUNNER (real Python via Pyodide, in-browser)
+   ============================================================ */
+const pyRunners = {};
+let pyodidePromise = null;
+
+function getPyodide() {
+  if (!pyodidePromise) {
+    pyodidePromise = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js";
+      s.onload = () => {
+        window.loadPyodide().then(resolve).catch(reject);
+      };
+      s.onerror = () => reject(new Error("Couldn't load the Pyodide script from the CDN."));
+      document.head.appendChild(s);
+    });
+  }
+  return pyodidePromise;
+}
+
+const PY_GPIO_SHIM = `
+import sys, types
+_rpi = types.ModuleType("RPi")
+_gpio = types.ModuleType("RPi.GPIO")
+_gpio.BCM = "BCM"; _gpio.BOARD = "BOARD"
+_gpio.OUT = "OUT"; _gpio.IN = "IN"
+_gpio.HIGH = 1; _gpio.LOW = 0
+def _setmode(mode): pass
+def _setup(pin, mode, initial=None):
+    if initial is not None:
+        from js import __cl_gpio_write
+        __cl_gpio_write(pin, bool(initial))
+def _output(pin, value):
+    from js import __cl_gpio_write
+    __cl_gpio_write(pin, bool(value))
+def _input(pin):
+    from js import __cl_gpio_read
+    return 1 if __cl_gpio_read(pin) else 0
+def _cleanup(*a, **k): pass
+class _PWM:
+    def __init__(self, pin, freq): self.pin = pin
+    def start(self, dc): pass
+    def ChangeDutyCycle(self, dc): pass
+    def ChangeFrequency(self, f): pass
+    def stop(self): pass
+def _pwm_factory(pin, freq): return _PWM(pin, freq)
+_gpio.setmode = _setmode
+_gpio.setup = _setup
+_gpio.output = _output
+_gpio.input = _input
+_gpio.cleanup = _cleanup
+_gpio.PWM = _pwm_factory
+_rpi.GPIO = _gpio
+sys.modules["RPi"] = _rpi
+sys.modules["RPi.GPIO"] = _gpio
+
+import time as _time
+_orig_sleep = _time.sleep
+def _patched_sleep(seconds):
+    from js import __cl_should_stop
+    if __cl_should_stop():
+        raise SystemExit()
+    _orig_sleep(seconds)
+_time.sleep = _patched_sleep
+`;
+
+function stopPyRunner(id) {
+  if (pyRunners[id]) pyRunners[id].stopped = true;
+}
+function stopAllPyRunners() { Object.keys(pyRunners).forEach(stopPyRunner); }
+
+async function runRaspberryPiCode(id) {
+  if (!state.simulate) { alert("Turn on Simulate first, then run the script."); return; }
+  const inst = state.components.find(c => c.id === id);
+  if (!inst) return;
+  const def = LIB[inst.type];
+  stopPyRunner(id);
+  const runner = { stopped: false };
+  pyRunners[id] = runner;
+
+  let pyodide;
+  try {
+    flashStatus("Loading Python runtime… (first run only)");
+    pyodide = await getPyodide();
+  } catch (e) {
+    alert("Couldn't load the Python runtime. Check your internet connection.");
+    delete pyRunners[id];
+    return;
+  }
+  if (runner.stopped) { delete pyRunners[id]; return; }
+
+  function gpioNameFor(pin) {
+    return pinIdFromName(def, "GPIO" + pin) || pinIdFromName(def, String(pin));
+  }
+  pyodide.globals.set("__cl_gpio_write", (pin, val) => {
+    const pid = gpioNameFor(pin);
+    if (!pid) { console.warn("CircuitLab script: unknown GPIO pin", pin); return; }
+    inst.pinHigh[pid] = !!val;
+    evaluateCircuit();
+  });
+  pyodide.globals.set("__cl_gpio_read", (pin) => {
+    const pid = gpioNameFor(pin);
+    return pid ? !!inst.pinHigh[pid] : false;
+  });
+  pyodide.globals.set("__cl_should_stop", () => runner.stopped);
+
+  flashStatus("Running Python on " + def.name);
+  try {
+    await pyodide.runPythonAsync(PY_GPIO_SHIM);
+    await pyodide.runPythonAsync(inst.pycode);
+    if (!runner.stopped) flashStatus("Python script finished");
+  } catch (e) {
+    if (!runner.stopped) {
+      console.error("Raspberry Pi script error:", e);
+      flashStatus("Python error — see browser console");
+    }
+  }
+  delete pyRunners[id];
+}
+
 /* keyframes injected once */
 (function(){
   const style = document.createElement("style");
@@ -1548,6 +2092,7 @@ document.getElementById("btnSimulate").addEventListener("click", (e)=>{
     getAudioCtx();
   } else {
     stopAllLoops();
+    stopAllPyRunners();
     stopAllBuzzers();
   }
   els.simStatus.textContent = state.simulate ? "Simulation running — click Arduino digital pins or buttons to toggle them" : "Simulation off";
@@ -1577,7 +2122,7 @@ document.getElementById("btnUndo").addEventListener("click", ()=>{
 
 document.getElementById("btnNew").addEventListener("click", ()=>{
   if (!confirm("Clear the entire board? This can't be undone.")) return;
-  stopAllLoops(); stopAllBuzzers();
+  stopAllLoops(); stopAllPyRunners(); stopAllBuzzers();
   state.components = []; state.wires = []; state.selectedComponent=null; state.selectedWire=null;
   els.compLayer.innerHTML=""; els.wireLayer.innerHTML="";
   showEmptyInspector(); updateStats(); persist();
