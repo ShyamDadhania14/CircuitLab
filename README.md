@@ -19,92 +19,156 @@
 
 You know that feeling when you wanna build a circuit but you're scared to fry your Arduino? Say less.
 
-**CircuitLab** is a full-blown, drag-and-drop, in-browser circuit simulator. Drop parts on a breadboard-textured canvas, wire them up pin-to-pin, hit **Simulate**, and watch LEDs glow, motors spin, buzzers actually beep, and 7-segment displays light up — all *before* you touch a single real wire. Get your whole build perfect in here, then go replicate it IRL with zero guesswork. No cap.
+**CircuitLab** is a full-blown, drag-and-drop, in-browser circuit simulator. Drop parts on a breadboard-textured canvas, wire them up pin-to-pin, hit **Simulate**, and watch LEDs glow, motors spin, buzzers actually beep, and 7-segment displays light up — all *before* you touch a single real wire.
 
-Built with plain HTML/CSS/JS. No frameworks, no build step, no `node_modules` black hole. Just open it and go.
+Get your whole build perfect in here, then go replicate it IRL with zero guesswork. No cap.
 
----
-
-## ✨ the features (there are a LOT)
-
-- 🧩 **100+ real components**, auto-sorted into folders by family (Resistors, Capacitors, Diodes, ICs, Sensors, you name it) — Arduino Uno/Nano/Mega, ESP8266/ESP32, three flavors of Raspberry Pi, transistors that actually switch, op-amps, a multimeter that *works*, and even a water tank with a float switch
-- 🔌 **Real pin-to-pin wiring** — click a pin, click another pin, boom, wire. Pick your wire color first if you're feeling fancy
-- ⚡ **A real simulation engine** — not just vibes. It's an actual electrical graph solver (union-find, for the nerds) that understands breadboard rails, transistor switching, voltage regulators, bridge rectifiers, the whole deal
-- 🔊 **Buzzers that genuinely make noise** via Web Audio, motors that spin, servos that sweep, relays that click
-- 💻 **Write real code for your boards** — Arduino-style JS sketches with `digitalWrite`/`delay`/`loop()`, or literal real Python (via Pyodide) for the Raspberry Pi boards, complete with an `RPi.GPIO` shim
-- 🩺 **A multimeter you can actually probe things with** — shows voltage, continuity, reversed polarity, even `OL` for no continuity, just like the real thing
-- ↩️ **Full undo/redo** — every move, wire, click, and edit is on the history stack. `Ctrl+Z` / `Ctrl+Shift+Z` (or the buttons) and you're covered
-- 💾 **Autosave** to your browser + JSON export/import so you can save, share, or reload your builds
-- 🎨 **A whole visual identity** — dark PCB-green theme, copper traces, glowing solder-pad pins, because ugly tools make bad circuits (probably)
+Built with plain HTML, CSS, and JavaScript. No frameworks, no build step, and no `node_modules` black hole. Just open it and go.
 
 ---
 
-## 🚀 running it locally
+## ✨ Features
 
-Zero setup. That's the whole pitch.
+- 🧩 **100+ real components** grouped into categories including Resistors, Capacitors, Diodes, ICs, Sensors, Arduino Uno/Nano/Mega, ESP8266, ESP32, Raspberry Pi boards, Transistors, Op-Amps, Motors, Relays, Displays, and much more.
+- 🔌 **Real pin-to-pin wiring** with selectable wire colors.
+- ⚡ **Actual simulation engine** using an electrical graph solver (Union-Find) supporting breadboard rails, regulators, bridge rectifiers, transistors, and more.
+- 🔊 **Interactive components** including buzzers (Web Audio), motors, servos, relays, LEDs, and displays.
+- 💻 **Programmable boards**
+  - Arduino-style JavaScript with `setup()`, `loop()`, `digitalWrite()`, `delay()`, etc.
+  - Raspberry Pi Python using **Pyodide** with an `RPi.GPIO` compatibility layer.
+- 🩺 **Working digital multimeter** with voltage, continuity, polarity detection, and `OL` indication.
+- ↩️ **Full Undo/Redo** support (`Ctrl + Z` / `Ctrl + Shift + Z`).
+- 💾 **Auto Save**, JSON Export, and Import support.
+- 🎨 **PCB-inspired interface** with glowing solder pads, copper traces, and a modern dark theme.
+
+---
+
+## 🚀 Running Locally
+
+Zero setup. That's the whole point.
 
 ```bash
 git clone https://github.com/ShyamDadhania14/CircuitLab.git
-cd circuitlab
+cd CircuitLab
 ```
 
-Then just... open `index.html` in a browser. Or if you want a local server (recommended so nothing weird happens with file paths):
+Open `index.html` directly in your browser.
+
+Or serve it locally (recommended):
 
 ```bash
 python3 -m http.server 8000
-# or
+```
+
+or
+
+```bash
 npx serve .
 ```
 
-Go to `http://localhost:8000` and start wiring.
-
----
-
-## 🗂️ what's in the repo
+Then visit:
 
 ```
-
-Everything runs client-side. Your circuits live in `localStorage` on your own machine — nothing gets sent anywhere.
-
----
-
-## 🎮 how to actually use it
-
-| Action | How |
-|---|---|
-| Add a part | Drag it from the left sidebar onto the board |
-| Wire two pins | Click pin A, then click pin B |
-| Change wire color | Pick a color from the bottom bar *before* wiring |
-| Move / select a part | Click and drag it |
-| Rotate / delete a part | Click it, use the buttons that appear above it |
-| See full pinout | Click any part — the right panel shows every pin |
-| Power it on | Hit **Simulate** up top |
-| Toggle an Arduino/Pi pin | Click the pin while Simulate is on |
-| Write code for a board | Select it, scroll the inspector, there's an editor |
-| Measure something | Drop a Multimeter, wire its two probes in |
-| Undo / Redo | `Ctrl+Z` / `Ctrl+Shift+Z`, or the toolbar buttons |
-| Save your build | Auto-saves, or hit **Export** for a `.json` file |
+http://localhost:8000
+```
 
 ---
 
-## 🛠️ built with
+## 🗂️ Repository Structure
 
-Literally just HTML, CSS, and JavaScript. No React, no bundler, no dependencies to `npm install`. The Raspberry Pi Python execution runs on [Pyodide](https://pyodide.org/), loaded on-demand straight from a CDN — the only thing here that touches the network.
+```text
+CircuitLab/
+├── index.html
+├── style.css
+├── script.js
+├── assets/
+│   ├── icons/
+│   ├── images/
+│   └── sounds/
+├── README.md
+└── LICENSE
+```
+
+Everything runs entirely on the client side.
+
+Your projects are stored locally in your browser using **localStorage**. Nothing is uploaded to any server.
 
 ---
 
-## 🤝 contributing
+## 🎮 How to Actually Use It
 
-Found a bug? Want to add a component? PRs are welcome — the component library is just a big object in `script.js`, so adding a new part is mostly copy-paste-and-vibe.
+| **Action** | **How** |
+|:-----------|:--------|
+| ➕ Add a part | Drag any component from the left sidebar onto the workspace. |
+| 🔌 Wire two pins | Click the first pin, then click the second pin. |
+| 🎨 Change wire color | Select a wire color from the bottom toolbar before connecting pins. |
+| 🖱️ Move a component | Click and drag the component anywhere on the board. |
+| 🔄 Rotate a component | Select it and click the **Rotate** button. |
+| 🗑️ Delete a component | Select it and click the **Delete** button. |
+| 📌 View pin information | Click a component to open its complete pinout in the inspector panel. |
+| ⚡ Start simulation | Press the **Simulate** button in the top toolbar. |
+| 🎛️ Toggle GPIO pins | During simulation, click Arduino or Raspberry Pi pins to change their state. |
+| 💻 Write code | Select a programmable board and use the built-in editor in the inspector panel. |
+| 🩺 Measure voltage or continuity | Place a **Multimeter** and connect both probes to the desired nodes. |
+| ↩️ Undo / Redo | Press **Ctrl + Z** / **Ctrl + Shift + Z**, or use the toolbar buttons. |
+| 💾 Save your work | Projects auto-save automatically. Use **Export** to download a `.json` project file. |
+| 📂 Load a project | Click **Import** and select a previously exported JSON file. |
 
 ---
 
-## 📄 license
+## 🛠️ Built With
 
-MIT. Do whatever you want with it, just don't blame us if you wire your real Arduino wrong anyway.
+- HTML5
+- CSS3
+- Vanilla JavaScript (ES6+)
+- Web Audio API
+- Canvas API
+- Local Storage API
+- Pyodide (loaded on demand from CDN for Raspberry Pi Python support)
+
+No frameworks.
+
+No bundlers.
+
+No build tools.
+
+No dependencies to install.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+Whether you'd like to:
+
+- Add new electronic components
+- Improve the simulator
+- Fix bugs
+- Improve the UI
+- Optimize performance
+- Improve documentation
+
+Feel free to open an Issue or submit a Pull Request.
+
+Adding a new component is straightforward since the component library is primarily defined in `script.js`.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
+
+Feel free to use, modify, and distribute it.
+
+Just don't blame us if your real-life wiring lets the magic smoke out 😄
+
+---
 
 <div align="center">
 
-**made for builders who'd rather simulate twice than desolder once** 🔧
+### 🔧 Made for builders who'd rather simulate twice than desolder once.
+
+⭐ If you found CircuitLab useful, consider giving the repository a star!
 
 </div>
