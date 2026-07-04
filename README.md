@@ -6,7 +6,7 @@
 
 *wire it here first, flex it on real hardware later*
 
-[![Deploy to Render](https://img.shields.io/badge/deploy-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy)
+[![Deploy to Render](https://img.shields.io/badge/deploy-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://circuitlab-beep.onrender.com)
 ![Vanilla JS](https://img.shields.io/badge/stack-HTML%2FCSS%2FJS-f7df1e?style=for-the-badge&logo=javascript&logoColor=black)
 ![No Build Step](https://img.shields.io/badge/build%20step-none%20needed-success?style=for-the-badge)
 ![100+ Parts](https://img.shields.io/badge/components-100%2B-blueviolet?style=for-the-badge)
@@ -44,7 +44,7 @@ Built with plain HTML/CSS/JS. No frameworks, no build step, no `node_modules` bl
 Zero setup. That's the whole pitch.
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/circuitlab.git
+git clone https://github.com/ShyamDadhania14/CircuitLab.git
 cd circuitlab
 ```
 
@@ -60,31 +60,8 @@ Go to `http://localhost:8000` and start wiring.
 
 ---
 
-## 🌐 deploying to Render (the whole reason this README exists)
-
-This is a **static site** — no server, no backend, no database. Render makes this stupid easy:
-
-1. Push this repo to GitHub.
-2. On [Render](https://dashboard.render.com), click **New +** → **Static Site**.
-3. Connect your GitHub repo.
-4. Fill in:
-   - **Build Command:** *(leave it empty — there's nothing to build)*
-   - **Publish Directory:** `.` *(root of the repo)*
-5. Click **Create Static Site**.
-6. Wait like 60 seconds. Sip water. It's live.
-
-That's it. No `package.json`, no build pipeline, no drama. Render just serves the files as-is.
-
----
-
 ## 🗂️ what's in the repo
 
-```
-circuitlab/
-├── index.html      → page structure, toolbar, panels
-├── style.css        → the entire dark PCB aesthetic
-├── script.js        → component library + wiring engine + simulation + everything else
-└── README.md        → you are here
 ```
 
 Everything runs client-side. Your circuits live in `localStorage` on your own machine — nothing gets sent anywhere.
