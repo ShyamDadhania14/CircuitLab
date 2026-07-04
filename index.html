@@ -29,6 +29,7 @@
     </button>
     <div class="divider"></div>
     <button id="btnUndo" class="btn btn-ghost" title="Undo (Ctrl+Z)">↺ Undo</button>
+    <button id="btnRedo" class="btn btn-ghost" title="Redo (Ctrl+Y / Ctrl+Shift+Z)">↻ Redo</button>
     <button id="btnGrid" class="btn btn-ghost" title="Toggle grid">▦ Grid</button>
     <button id="btnZoomOut" class="btn btn-ghost" title="Zoom out">–</button>
     <span id="zoomLabel" class="zoom-label">100%</span>
@@ -65,6 +66,7 @@
     <div class="board-hint" id="boardHint">
       Drag components here from the left. Click a pin, then click another pin to connect them with a wire.
     </div>
+    <div class="wire-tooltip" id="wireTooltip"></div>
   </section>
 
   <!-- RIGHT: inspector -->

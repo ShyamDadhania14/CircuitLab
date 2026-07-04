@@ -1351,6 +1351,7 @@ const state = {
   selectedComponent: null,
   selectedWire: null,
   pendingPin: null, // {compId,pinId,el}
+  hoveredWireId: null,
   wireColor: "#e2453f",
   nextCompN: 1,
   nextWireN: 1,
@@ -1372,6 +1373,7 @@ const els = {
   zoomLabel: document.getElementById("zoomLabel"),
   wireColorPicker: document.getElementById("wireColorPicker"),
   boardHint: document.getElementById("boardHint"),
+  wireTooltip: document.getElementById("wireTooltip"),
 };
 
 /* ---------------- palette ---------------- */
@@ -1469,6 +1471,7 @@ function addComponent(type, x, y) {
   renderComponent(inst);
   hideHint();
   persist();
+  pushHistory();
   return inst;
 }
 
@@ -1492,7 +1495,7 @@ function renderComponent(inst) {
 
   const rotBtn = document.createElement("div");
   rotBtn.className = "comp-rotate-btn"; rotBtn.textContent = "⟳"; rotBtn.title="Rotate 90°";
-  rotBtn.addEventListener("click", e=>{ e.stopPropagation(); inst.rot=(inst.rot+90)%360; body.style.transform=`rotate(${inst.rot}deg)`; requestAnimationFrame(redrawWires); persist(); });
+  rotBtn.addEventListener("click", e=>{ e.stopPropagation(); inst.rot=(inst.rot+90)%360; body.style.transform=`rotate(${inst.rot}deg)`; requestAnimationFrame(redrawWires); persist(); pushHistory(); });
   wrap.appendChild(rotBtn);
 
   const delBtn = document.createElement("div");
@@ -1554,7 +1557,11 @@ function renderComponent(inst) {
     redrawWires();
   });
   window.addEventListener("mouseup", ()=>{
-    if (dragging) { dragging=false; wrap.classList.remove("dragging"); persist(); if(!moved) selectComponent(inst.id); }
+    if (dragging) {
+      dragging=false; wrap.classList.remove("dragging"); persist();
+      if (moved) pushHistory();
+      if (!moved) selectComponent(inst.id);
+    }
   });
 
   // dynamic click behaviors (button press, etc.) on the body itself
@@ -1565,6 +1572,7 @@ function renderComponent(inst) {
       body.querySelector(".btn-cap-inner")?.setAttribute("fill", inst.pressed ? "#39ff88" : "#555");
       evaluateCircuit();
       persist();
+      pushHistory();
     }
     if (def.dynamic==="watertank") {
       inst.pressed = !inst.pressed;
@@ -1573,6 +1581,7 @@ function renderComponent(inst) {
       if (water) water.setAttribute("y", inst.pressed ? "26" : "88");
       evaluateCircuit();
       persist();
+      pushHistory();
     }
     if (def.dynamic==="toggleswitch") {
       inst.pressed = !inst.pressed;
@@ -1581,6 +1590,7 @@ function renderComponent(inst) {
       if (lever) lever.setAttribute("stroke", inst.pressed ? "#39ff88" : "#dcdcdc");
       evaluateCircuit();
       persist();
+      pushHistory();
     }
   });
 
@@ -1598,6 +1608,7 @@ function removeComponent(id) {
   redrawWires();
   evaluateCircuit();
   persist();
+  pushHistory();
 }
 
 /* ---------------- selection ---------------- */
@@ -1682,12 +1693,14 @@ function renderInspectorForComponent(id) {
       if (label) label.textContent = inst.voltage + "V";
       persist();
     });
+    slider.addEventListener("change", ()=> pushHistory());
   }
   if (def.dynamic === "arduino") {
     const editor = document.getElementById("codeEditor");
     editor.addEventListener("input", ()=>{ inst.code = editor.value; persist(); });
+    editor.addEventListener("change", ()=> pushHistory());
     document.getElementById("runCodeBtn").addEventListener("click", ()=>{
-      inst.code = editor.value; persist(); runArduinoCode(id); renderInspectorForComponent(id);
+      inst.code = editor.value; persist(); pushHistory(); runArduinoCode(id); renderInspectorForComponent(id);
     });
     document.getElementById("stopCodeBtn").addEventListener("click", ()=>{
       stopLoop(id); flashStatus("Code stopped"); renderInspectorForComponent(id);
@@ -1696,8 +1709,9 @@ function renderInspectorForComponent(id) {
   if (def.dynamic === "raspberrypi") {
     const editor = document.getElementById("pyEditor");
     editor.addEventListener("input", ()=>{ inst.pycode = editor.value; persist(); });
+    editor.addEventListener("change", ()=> pushHistory());
     document.getElementById("runPyBtn").addEventListener("click", ()=>{
-      inst.pycode = editor.value; persist();
+      inst.pycode = editor.value; persist(); pushHistory();
       renderInspectorForComponent(id);
       runRaspberryPiCode(id).then(()=> renderInspectorForComponent(id));
     });
@@ -1743,6 +1757,7 @@ function onPinClick(inst, pinDef, pinEl) {
   evaluateCircuit();
   if (state.selectedComponent) renderInspectorForComponent(state.selectedComponent);
   persist();
+  pushHistory();
 }
 
 /* ---------------- geometry / wire drawing ---------------- */
@@ -1770,16 +1785,50 @@ function redrawWires() {
     const d = `M ${p1.x} ${p1.y} C ${p1.x+dx} ${p1.y}, ${p2.x-dx} ${p2.y}, ${p2.x} ${p2.y}`;
     const active = w._active ? "active" : "";
     const selected = state.selectedWire===w.id ? "selected" : "";
-    const tooltip = `${describePin(w.a)}  ↔  ${describePin(w.b)}`;
-    html += `<path class="wire-hit" data-id="${w.id}" d="${d}"><title>${tooltip}</title></path>`;
-    html += `<path class="wire-path ${active} ${selected}" data-id="${w.id}" d="${d}" stroke="${w.color}" stroke-width="3" style="color:${w.color}"><title>${tooltip}</title></path>`;
+    html += `<path class="wire-hit" data-id="${w.id}" d="${d}"></path>`;
+    html += `<path class="wire-path ${active} ${selected}" data-id="${w.id}" d="${d}" stroke="${w.color}" stroke-width="3" style="color:${w.color}"></path>`;
   });
   els.wireLayer.innerHTML = html;
   els.wireLayer.querySelectorAll(".wire-hit").forEach(p=>{
     p.style.pointerEvents = "stroke";
     p.addEventListener("click", ()=> selectWire(p.dataset.id));
+    p.addEventListener("mouseenter", ()=> { state.hoveredWireId = p.dataset.id; showWireTooltip(p.dataset.id); });
+    p.addEventListener("mousemove", (e)=> positionWireTooltip(e));
+    p.addEventListener("mouseleave", ()=> { state.hoveredWireId = null; hideWireTooltip(); });
   });
+  // if we were mid-hover on a wire that still exists after this rebuild
+  // (e.g. a running sketch just blinked an LED), keep the tooltip showing
+  // instead of letting it flicker off.
+  if (state.hoveredWireId && state.wires.some(w=>w.id===state.hoveredWireId)) {
+    showWireTooltip(state.hoveredWireId);
+  } else {
+    state.hoveredWireId = null;
+    hideWireTooltip();
+  }
   updateStats();
+}
+
+/* Instant, styled tooltip that follows the cursor and names both ends of
+   whichever wire you're hovering — e.g. "9V Battery · Leg 1 ↔ Arduino Uno · D4" */
+function showWireTooltip(wireId) {
+  const wire = state.wires.find(w=>w.id===wireId);
+  if (!wire || !els.wireTooltip) return;
+  const a = pinInfo(wire.a), b = pinInfo(wire.b);
+  els.wireTooltip.innerHTML = `
+    <div class="wt-end"><span class="wt-comp">${a.comp}</span><span class="wt-pin">${a.pin}</span></div>
+    <span class="wt-arrow">↔</span>
+    <div class="wt-end"><span class="wt-comp">${b.comp}</span><span class="wt-pin">${b.pin}</span></div>
+  `;
+  els.wireTooltip.classList.add("visible");
+}
+function positionWireTooltip(e) {
+  if (!els.wireTooltip || !els.wireTooltip.classList.contains("visible")) return;
+  const wrapRect = document.getElementById("boardWrap").getBoundingClientRect();
+  els.wireTooltip.style.left = (e.clientX - wrapRect.left) + "px";
+  els.wireTooltip.style.top = (e.clientY - wrapRect.top) + "px";
+}
+function hideWireTooltip() {
+  if (els.wireTooltip) els.wireTooltip.classList.remove("visible");
 }
 
 function selectWire(id) {
@@ -1798,12 +1847,12 @@ function selectWire(id) {
     <button class="inspector-danger" id="delSelectedWire">Delete this wire</button>
   `;
   els.inspectorContent.querySelectorAll(".swatch").forEach(s=> s.addEventListener("click", ()=>{
-    wire.color = s.dataset.c; redrawWires(); selectWire(id); persist();
+    wire.color = s.dataset.c; redrawWires(); selectWire(id); persist(); pushHistory();
   }));
   document.getElementById("delSelectedWire").addEventListener("click", ()=>{
     state.wires = state.wires.filter(w=>w.id!==id);
     state.selectedWire = null;
-    redrawWires(); evaluateCircuit(); showEmptyInspector(); persist();
+    redrawWires(); evaluateCircuit(); showEmptyInspector(); persist(); pushHistory();
   });
   redrawWires();
 }
@@ -1814,6 +1863,14 @@ function describePin(ref) {
   const def = LIB[inst.type];
   const p = def.pins.find(p=>p.id===ref.p);
   return `${def.name} · ${p?p.name:ref.p}`;
+}
+
+function pinInfo(ref) {
+  const inst = state.components.find(c=>c.id===ref.c);
+  if (!inst) return { comp:"?", pin:"?" };
+  const def = LIB[inst.type];
+  const p = def.pins.find(p=>p.id===ref.p);
+  return { comp: def.name, pin: p ? p.name : ref.p };
 }
 
 /* click empty board = deselect */
@@ -1827,11 +1884,12 @@ els.board.addEventListener("mousedown", e=>{
 /* delete key */
 window.addEventListener("keydown", e=>{
   if (e.key==="Delete" || e.key==="Backspace") {
-    if (document.activeElement===els.search) return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === "TEXTAREA" || tag === "INPUT") return;
     if (state.selectedComponent) { removeComponent(state.selectedComponent); e.preventDefault(); }
     else if (state.selectedWire) {
       state.wires = state.wires.filter(w=>w.id!==state.selectedWire);
-      state.selectedWire = null; redrawWires(); evaluateCircuit(); showEmptyInspector(); persist();
+      state.selectedWire = null; redrawWires(); evaluateCircuit(); showEmptyInspector(); persist(); pushHistory();
       e.preventDefault();
     }
   }
@@ -2386,17 +2444,14 @@ function setZoom(z) {
   redrawWires();
 }
 
-document.getElementById("btnUndo").addEventListener("click", ()=>{
-  if (state.wires.length) { state.wires.pop(); redrawWires(); evaluateCircuit(); persist(); }
-  else if (state.components.length) { removeComponent(state.components[state.components.length-1].id); }
-});
+document.getElementById("btnUndo").addEventListener("click", undo);
 
 document.getElementById("btnNew").addEventListener("click", ()=>{
-  if (!confirm("Clear the entire board? This can't be undone.")) return;
+  if (!confirm("Clear the entire board? (You can Undo this afterward if you change your mind.)")) return;
   stopAllLoops(); stopAllPyRunners(); stopAllBuzzers();
   state.components = []; state.wires = []; state.selectedComponent=null; state.selectedWire=null;
   els.compLayer.innerHTML=""; els.wireLayer.innerHTML="";
-  showEmptyInspector(); updateStats(); persist();
+  showEmptyInspector(); updateStats(); persist(); pushHistory();
   els.boardHint.style.opacity = "1";
 });
 
@@ -2437,9 +2492,48 @@ function persist() {
   localStorage.setItem("circuitlab_state", JSON.stringify({components:state.components, wires:state.wires}));
 }
 
-function loadState(data) {
-  state.components = data.components||[];
-  state.wires = data.wires||[];
+/* ---------------- undo / redo history ---------------- */
+const history = { stack: [], index: -1, restoring: false };
+const MAX_HISTORY = 100;
+
+function snapshotState() {
+  return JSON.stringify({components: state.components, wires: state.wires});
+}
+
+function resetHistory() {
+  history.stack = [snapshotState()];
+  history.index = 0;
+  updateUndoRedoButtons();
+}
+
+function pushHistory() {
+  if (history.restoring) return;
+  const snap = snapshotState();
+  if (history.stack[history.index] === snap) return; // no real change, skip
+  history.stack = history.stack.slice(0, history.index + 1);
+  history.stack.push(snap);
+  history.index = history.stack.length - 1;
+  if (history.stack.length > MAX_HISTORY) {
+    history.stack.shift();
+    history.index--;
+  }
+  updateUndoRedoButtons();
+}
+
+function updateUndoRedoButtons() {
+  const undoBtn = document.getElementById("btnUndo");
+  const redoBtn = document.getElementById("btnRedo");
+  if (undoBtn) undoBtn.disabled = history.index <= 0;
+  if (redoBtn) redoBtn.disabled = history.index >= history.stack.length - 1;
+}
+
+function rebuildBoardFromData(data) {
+  stopAllLoops(); stopAllPyRunners(); stopAllBuzzers();
+  state.components = data.components || [];
+  state.wires = data.wires || [];
+  state.selectedComponent = null;
+  state.selectedWire = null;
+  state.pendingPin = null;
   state.nextCompN = state.components.reduce((m,c)=>Math.max(m, parseInt(c.id.slice(1))||0), 0)+1;
   state.nextWireN = state.wires.reduce((m,w)=>Math.max(m, parseInt(w.id.slice(1))||0), 0)+1;
   els.compLayer.innerHTML = "";
@@ -2450,9 +2544,46 @@ function loadState(data) {
     if (body) body.style.transform = `rotate(${inst.rot||0}deg)`;
   });
   if (state.components.length) hideHint();
+  showEmptyInspector();
   requestAnimationFrame(()=>{ redrawWires(); evaluateCircuit(); });
-  persist();
 }
+
+/* Used by Import and the very first page load — starts a brand new history. */
+function loadState(data) {
+  rebuildBoardFromData(data);
+  persist();
+  resetHistory();
+}
+
+function undo() {
+  if (history.index <= 0) return;
+  history.index--;
+  history.restoring = true;
+  rebuildBoardFromData(JSON.parse(history.stack[history.index]));
+  history.restoring = false;
+  persist();
+  updateUndoRedoButtons();
+}
+
+function redo() {
+  if (history.index >= history.stack.length - 1) return;
+  history.index++;
+  history.restoring = true;
+  rebuildBoardFromData(JSON.parse(history.stack[history.index]));
+  history.restoring = false;
+  persist();
+  updateUndoRedoButtons();
+}
+
+document.getElementById("btnRedo").addEventListener("click", redo);
+
+window.addEventListener("keydown", e=>{
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === "TEXTAREA" || tag === "INPUT") return; // don't hijack typing in code editors / sliders
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && !e.shiftKey && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); }
+  else if (mod && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))) { e.preventDefault(); redo(); }
+});
 
 /* load on start */
 (function init(){
@@ -2461,7 +2592,10 @@ function loadState(data) {
     try {
       const data = JSON.parse(saved);
       if (data.components && data.components.length) loadState(data);
-    } catch(e){ /* ignore corrupt save */ }
+      else resetHistory();
+    } catch(e){ resetHistory(); }
+  } else {
+    resetHistory();
   }
   updateStats();
 })();
